@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -29,15 +30,17 @@ namespace AddressParser
 
         private void LoadPropertyFromDictionary(IDictionary<string, string> source)
         {
-            var someObjectType = typeof(AddressParseResult);
-
+            //var someObjectType = typeof(AddressParseResult);
+            //foreach (var item in source)
+            //{
+            //    var prop = someObjectType.GetProperty(item.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+            //    if (prop != null)
+            //        prop.SetValue(this, item.Value, null);
+            //}
+            //.net standard 1.5 compatible
+            var declaredProperties = typeof(AddressParseResult).GetTypeInfo().DeclaredProperties;
             foreach (var item in source)
-            {
-                var prop = someObjectType.GetProperty(item.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
-                if (prop != null)
-                    prop.SetValue(this, item.Value, null);
-            }
-
+                declaredProperties.FirstOrDefault(x => string.Compare(x.Name, item.Key, StringComparison.CurrentCultureIgnoreCase) == 0)?.SetValue(this, item.Value, null);
         }
 
         /// <summary>

@@ -48,13 +48,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AddressParser\AddressParser.csproj">
-      <Project>{FCEBD207-0C18-4D92-974C-C7A615AC7DEE}</Project>
-      <Name>AddressParser</Name>
-    </ProjectReference>
+    <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <ProjectReference Include="..\AddressParser\AddressParser.csproj">
+      <Project>{96564ce8-7659-4409-aa9a-ab92b809a3b3}</Project>
+      <Name>AddressParser</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,0 +1,21 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>AddressParser</id>
+    <version>$version$</version>
+    <title>Address Parser</title>
+    <authors>WayneBrantley</authors>
+    <owners>WayneBrantley</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>US Address Parsing</description>
+    <dependencies>
+      <group targetFramework="netstandard1.4">
+      </group>
+      <group targetFramework="net461">
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+      <file src="bin\release\**\AddressParser.*" target="lib" />
+  </files>  
+</package>
