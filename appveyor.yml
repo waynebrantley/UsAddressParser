@@ -1,14 +1,21 @@
 configuration: Release
 init: tzutil /s "Eastern Standard Time"
+image: Visual Studio 2017
 nuget:
-  account_feed: true
+  account_feed: false
   disable_publish_on_pr: true
 skip_tags: true
+pull_requests:
+  do_not_increment_build_number: true
+shallow_clone: true
+skip_commits:
+  files:
+    - readme.md
 cache:
   - packages
-  - C:\ProgramData\chocolatey\bin -> build.cake
-  - C:\ProgramData\chocolatey\lib -> build.cake
-  - tools -> build.cake
+  - C:\ProgramData\chocolatey\bin -> build.cake, appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> build.cake, appveyor.yml
+  - tools -> build.cake, appveyor.yml
 skip_branch_with_pr: true
 build_script:
 - cmd: >-

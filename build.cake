@@ -1,6 +1,5 @@
 #addin nuget:?package=Cake.Git
-#tool "nuget:?package=OctopusTools"
-#addin nuget:https://ci.appveyor.com/nuget/cake-utility-4ufl9hamniq3/?package=Cake.Utility
+#addin nuget:?package=Cake.Utility
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -45,14 +44,14 @@ Task("Pack")
     .IsDependentOn("Nunit2")
     .Does(() =>
 {
+
     var nuspecFiles = GetFiles("./**/*.nuspec");
     var output = Directory("./Artifacts"); 
     CreateDirectory(output); 
     foreach (var nuspec in nuspecFiles){
 		Information(nuspec.FullPath);
 		string fileToPack =  nuspec.ChangeExtension(".csproj").FullPath;
-		if (nuspec.GetFilename().ToString()=="WayneBrantley.Extensions.Std.nuspec")
-			fileToPack = nuspec.FullPath;
+    	fileToPack = nuspec.FullPath;
 		NuGetPack(fileToPack,  new NuGetPackSettings { 
 			Version = versionInfo.FullVersion,
             OutputDirectory = output.Path.FullPath,
@@ -61,16 +60,15 @@ Task("Pack")
 		});
 	}
 
-    //will not use nuspec right now
   	//var settings = new DotNetCorePackSettings
-    //{
+   // {
     //    Configuration = configuration,
     //    OutputDirectory = "./artifacts/",
-	//	NoBuild = true,
-	//	Verbose = true
+	//	NoBuild = true
     //};
 
-    //DotNetCorePack("./*", settings);
+    //DotNetCorePack("./AddressParser/AddressParser.csproj", settings);
+	//DotNetCorePack("./AddressParser.sln", settings);
 
 });
 

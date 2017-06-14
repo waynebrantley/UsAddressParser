@@ -5,6 +5,9 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <Authors>Wayne Brantley</Authors>
+    <Description>US Address Parsing</Description>
+    <PackageProjectUrl>https://github.com/waynebrantley/UsAddressParser</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
