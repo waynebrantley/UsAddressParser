@@ -1,11 +1,11 @@
-﻿namespace AddressParser
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Reflection;
-    using System.Text.RegularExpressions;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
+namespace AddressParser
+{
     /// <summary>
     /// Contains the fields that were extracted by the <see cref="AddressParser"/> object.
     /// </summary>
@@ -14,7 +14,7 @@
         /// <summary>
         /// The street line.
         /// </summary>
-        private string streetLine;
+        private string _streetLine;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressParseResult"/> class.
@@ -24,23 +24,20 @@
         {
             if (fields == null)
             {
-                throw new ArgumentNullException("fields");
+                throw new ArgumentNullException(nameof(fields));
             }
 
-            var type = this.GetType();
+            var type = GetType();
+            const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase;
             foreach (var pair in fields)
             {
-                var bindingFlags = 
-                    BindingFlags.Instance | 
-                    BindingFlags.Public | 
-                    BindingFlags.IgnoreCase;
                 var propertyInfo = type.GetProperty(pair.Key, bindingFlags);
                 if (propertyInfo != null)
                 {
                     var methodInfo = propertyInfo.GetSetMethod(true);
                     if (methodInfo != null)
                     {
-                        methodInfo.Invoke(this, new[] { pair.Value });
+                        methodInfo.Invoke(this, new object[] { pair.Value });
                     }
                 }
             }
@@ -110,32 +107,20 @@
         {
             get
             {
-                if (this.streetLine == null)
+                if (_streetLine == null)
                 {
                     var streetLine = string.Join(
-                        " ",
-                        new[] {
-                            this.Number,
-                            this.Predirectional,
-                            this.Street,
-                            this.Suffix,
-                            this.Postdirectional,
-                            this.SecondaryUnit,
-                            this.SecondaryNumber
-                    });
+                        " ", Number, Predirectional, Street, Suffix, Postdirectional, SecondaryUnit, SecondaryNumber);
                     streetLine = Regex
                         .Replace(streetLine, @"\ +", " ")
                         .Trim();
                     return streetLine;
                 }
 
-                return this.streetLine;
+                return _streetLine;
             }
 
-            private set
-            {
-                this.streetLine = value;
-            }
+            private set => _streetLine = value;
         }
 
         /// <summary>
@@ -185,10 +170,10 @@
             return string.Format(
                 CultureInfo.InvariantCulture,
                 "{0}; {1}, {2}  {3}",
-                this.StreetLine,
-                this.City,
-                this.State,
-                this.Zip);
+                StreetLine,
+                City,
+                State,
+                Zip);
         }
     }
 }

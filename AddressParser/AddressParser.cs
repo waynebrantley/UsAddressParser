@@ -1,10 +1,10 @@
-﻿namespace AddressParser
-{
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
 
+namespace AddressParser
+{
     /// <summary>
     ///     <para>
     ///         This is an attempt at a port of the Perl CPAN module Geo::StreetAddress::US
@@ -34,8 +34,7 @@
         /// <summary>
         /// Maps directional names (north, northeast, etc.) to abbreviations (N, NE, etc.).
         /// </summary>
-        private static Dictionary<string, string> directionals =
-            new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> Directionals = new Dictionary<string, string>
             {
                 { "NORTH", "N" },
                 { "NORTHEAST", "NE" },
@@ -55,8 +54,7 @@
         /// Maps lowercased US state and territory names to their canonical two-letter
         /// postal abbreviations.
         /// </summary>
-        private static Dictionary<string, string> states =
-            new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> States = new Dictionary<string, string>
             {
                 { "ALABAMA", "AL" },
                 { "ALASKA", "AK" },
@@ -127,8 +125,7 @@
         /// Maps lowerecased USPS standard street suffixes to their canonical postal
         /// abbreviations as found in TIGER/Line.
         /// </summary>
-        private static Dictionary<string, string> suffixes = 
-            new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> Suffixes = new Dictionary<string, string>
             {
                 { "ALLEE", "ALY" },
                 { "ALLEY", "ALY" },
@@ -501,8 +498,7 @@
         /// <summary>
         /// Secondary units that require a number after them.
         /// </summary>
-        private static Dictionary<string, string> rangedSecondaryUnits =
-            new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> RangedSecondaryUnits = new Dictionary<string, string>
             {
                 { @"SU?I?TE", "STE" },
                 { @"(?:AP)(?:AR)?T(?:ME?NT)?", "APT" },
@@ -529,8 +525,7 @@
         /// <summary>
         /// Secondary units that do not require a number after them.
         /// </summary>
-        private static Dictionary<string, string> rangelessSecondaryUnits =
-            new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> RangelessSecondaryUnits = new Dictionary<string, string>
             {
                 { "BA?SE?ME?N?T", "BSMT" },
                 { "FRO?NT", "FRNT" },
@@ -548,21 +543,19 @@
         /// <summary>
         /// A combined dictionary of the ranged and rangeless secondary units.
         /// </summary>
-        private static Dictionary<string, string> allSecondaryUnits;
+        private static readonly Dictionary<string, string> AllSecondaryUnits;
 
         /// <summary>
         /// The gigantic regular expression that actually extracts the bits and pieces
         /// from a given address.
         /// </summary>
-        private static Regex addressRegex;
+        private static Regex _addressRegex;
 
         /// <summary>
         /// In the <see cref="M:addressRegex"/> member, these are the names
         /// of the groups in the result that we care to inspect.
         /// </summary>
-        private static string[] fields = 
-            new[]
-            {
+        private static readonly string[] Fields ={
                 "NUMBER",
                 "PREDIRECTIONAL",
                 "STREET",
@@ -584,7 +577,7 @@
             // Build a combined dictionary of both the ranged and rangeless secondary units.
             // This is used by the Normalize() method to convert the unit into the USPS
             // standardized form.
-            allSecondaryUnits = new[] { rangedSecondaryUnits, rangelessSecondaryUnits }
+            AllSecondaryUnits = new[] { RangedSecondaryUnits, RangelessSecondaryUnits }
                 .SelectMany(x => x)
                 .ToDictionary(y => y.Key, y => y.Value);
 
@@ -601,7 +594,7 @@
         {
             if (!string.IsNullOrWhiteSpace(input))
             {
-                var match = addressRegex.Match(input.ToUpperInvariant());
+                var match = _addressRegex.Match(input.ToUpperInvariant());
                 if (match.Success)
                 {
                     var extracted = GetApplicableFields(match);
@@ -623,9 +616,9 @@
         {
             var applicable = new Dictionary<string, string>();
 
-            foreach (var field in addressRegex.GetGroupNames())
+            foreach (var field in _addressRegex.GetGroupNames())
             {
-                if (fields.Contains(field))
+                if (Fields.Contains(field))
                 {
                     if (match.Groups[field].Success)
                     {
@@ -651,7 +644,7 @@
             Dictionary<string, string> map,
             string input)
         {
-            var output = input;
+            string output = input;
 
             foreach (var pair in map)
             {
@@ -680,12 +673,8 @@
             Dictionary<string, string> map,
             string input)
         {
-            string output;
-
-            if (!map.TryGetValue(input, out output))
-            {
+            if (!map.TryGetValue(input, out string output))
                 output = input;
-            }
 
             return output;
         }
@@ -708,16 +697,16 @@
             {
                 case "PREDIRECTIONAL":
                 case "POSTDIRECTIONAL":
-                    output = GetNormalizedValueByStaticLookup(directionals, input);
+                    output = GetNormalizedValueByStaticLookup(Directionals, input);
                     break;
                 case "SUFFIX":
-                    output = GetNormalizedValueByStaticLookup(suffixes, input);
+                    output = GetNormalizedValueByStaticLookup(Suffixes, input);
                     break;
                 case "SECONDARYUNIT":
-                    output = GetNormalizedValueByRegexLookup(allSecondaryUnits, input);
+                    output = GetNormalizedValueByRegexLookup(AllSecondaryUnits, input);
                     break;
                 case "STATE":
-                    output = GetNormalizedValueByStaticLookup(states, input);
+                    output = GetNormalizedValueByStaticLookup(States, input);
                     break;
                 case "NUMBER":
                     if (!input.Contains('/'))
@@ -725,8 +714,6 @@
                         output = input.Replace(" ", string.Empty);
                     }
 
-                    break;
-                default:
                     break;
             }
 
@@ -739,47 +726,22 @@
         /// </summary>
         private static void InitializeRegex()
         {
-            var suffixPattern = new Regex(
-                string.Join(
-                    "|",
-                    new [] {
-                        string.Join("|", suffixes.Keys), 
-                        string.Join("|", suffixes.Values.Distinct())
-                    }),
-                RegexOptions.Compiled);
+            var suffixPattern = new Regex(string.Join("|", string.Join("|", Suffixes.Keys), string.Join("|", Suffixes.Values.Distinct())), RegexOptions.Compiled);
 
-            var statePattern = 
-                @"\b(?:" + 
-                string.Join(
-                    "|",
-                    new [] {
-                        string.Join("|", states.Keys.Select(x => Regex.Escape(x))),
-                        string.Join("|", states.Values)
-                    }) +
-                @")\b";
+            var statePattern = $@"\b(?:{string.Join("|", string.Join("|", States.Keys.Select(x => Regex.Escape(x))), string.Join("|", States.Values))})\b";
 
-            var directionalPattern =
-                string.Join(
-                    "|",
-                    new [] {
-                        string.Join("|", directionals.Keys),
-                        string.Join("|", directionals.Values),
-                        string.Join("|", directionals.Values.Select(x => Regex.Replace(x, @"(\w)", @"$1\.")))
-                    });
+            var directionalPattern = string.Join("|", string.Join("|", Directionals.Keys), string.Join("|", Directionals.Values), string.Join("|", Directionals.Values.Select(x => Regex.Replace(x, @"(\w)", @"$1\."))));
 
-            var zipPattern = @"\d{5}(?:-?\d{4})?";
+            const string zipPattern = @"\d{5}(?:-?\d{4})?";
 
-            var numberPattern =
-                @"(
+            const string numberPattern = @"(
                     ((?<NUMBER>\d+)(?<SECONDARYNUMBER>(-[0-9])|(\-?[A-Z]))(?=\b))    # Unit-attached
                     |(?<NUMBER>\d+[\-\ ]?\d+\/\d+)                                   # Fractional
                     |(?<NUMBER>\d+-?\d*)                                             # Normal Number
                     |(?<NUMBER>[NSWE]\ ?\d+\ ?[NSWE]\ ?\d+)                          # Wisconsin/Illinois
                   )";
 
-            var streetPattern =
-                string.Format(
-                    CultureInfo.InvariantCulture,
+            var streetPattern = string.Format(CultureInfo.InvariantCulture,
                     @"
                         (?:
                           # special case for addresses like 100 South Street
@@ -800,22 +762,11 @@
                             (?:[^\w,]+(?<POSTDIRECTIONAL>{0})\b)?
                           )
                         )
-                    ",
-                    directionalPattern,
-                    suffixPattern);
+                    ", directionalPattern, suffixPattern);
 
-            var rangedSecondaryUnitPattern =
-                @"(?<SECONDARYUNIT>" +
-                string.Join("|", rangedSecondaryUnits.Keys) +
-                @")(?![a-z])";
-            var rangelessSecondaryUnitPattern =
-                @"(?<SECONDARYUNIT>" +
-                string.Join(
-                    "|",
-                    string.Join("|", rangelessSecondaryUnits.Keys)) +
-                @")\b";
-            var allSecondaryUnitPattern = string.Format(
-                CultureInfo.InvariantCulture,
+            var rangedSecondaryUnitPattern = $@"(?<SECONDARYUNIT>{string.Join("|", RangedSecondaryUnits.Keys)})(?![a-z])";
+            var rangelessSecondaryUnitPattern = $@"(?<SECONDARYUNIT>{string.Join("|", string.Join("|", RangelessSecondaryUnits.Keys))})\b";
+            var allSecondaryUnitPattern = string.Format(CultureInfo.InvariantCulture,
                 @"
                     (
                         (:?
@@ -826,30 +777,22 @@
                         )
                         |{1}
                     ),?
-                ",
-                 rangedSecondaryUnitPattern,
-                 rangelessSecondaryUnitPattern);
+                ", rangedSecondaryUnitPattern, rangelessSecondaryUnitPattern);
 
-            var cityAndStatePattern = string.Format(
-                CultureInfo.InvariantCulture,
+            var cityAndStatePattern = string.Format(CultureInfo.InvariantCulture,
                 @"
                     (?:
                         (?<CITY>[^\d,]+?)\W+
                         (?<STATE>{0})
                     )
-                ",
-                statePattern);
-            var placePattern = string.Format(
-                CultureInfo.InvariantCulture,
+                ", statePattern);
+            var placePattern = string.Format(CultureInfo.InvariantCulture,
                 @"
                     (?:{0}\W*)?
                     (?:(?<ZIP>{1}))?
-                ",
-                cityAndStatePattern,
-                zipPattern);
+                ", cityAndStatePattern, zipPattern);
 
-            var addressPattern = string.Format(
-                CultureInfo.InvariantCulture,
+            var addressPattern = string.Format(CultureInfo.InvariantCulture,
                 @"
                     ^
                     # Special case for APO/FPO/DPO addresses
@@ -879,17 +822,8 @@
                         \W*         # require on non-word chars at end
                     )
                     $           # right up to end of string
-                ",
-                numberPattern,
-                streetPattern,
-                allSecondaryUnitPattern,
-                placePattern,
-                zipPattern);
-            addressRegex = new Regex(
-                addressPattern,
-                RegexOptions.Compiled | 
-                RegexOptions.Singleline | 
-                RegexOptions.IgnorePatternWhitespace);
+                ", numberPattern, streetPattern, allSecondaryUnitPattern, placePattern, zipPattern);
+            _addressRegex = new Regex(addressPattern, RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnorePatternWhitespace);
         }
 
         /// <summary>
@@ -909,10 +843,7 @@
                 var value = pair.Value;
 
                 // Strip off some punctuation
-                value = Regex.Replace(
-                    value,
-                    @"^\s+|\s+$|[^\/\w\s\-\#\&]",
-                    string.Empty);
+                value = Regex.Replace(value, @"^\s+|\s+$|[^\/\w\s\-\#\&]", string.Empty);
 
                 // Normalize to official abbreviations where appropriate
                 value = GetNormalizedValueForField(key, value);
@@ -922,11 +853,8 @@
 
             // Special case for an attached unit
             if (extracted.ContainsKey("SECONDARYNUMBER") &&
-                (!extracted.ContainsKey("SECONDARYUNIT") ||
-                 string.IsNullOrWhiteSpace(extracted["SECONDARYUNIT"])))
-            {
+                (!extracted.ContainsKey("SECONDARYUNIT") || string.IsNullOrWhiteSpace(extracted["SECONDARYUNIT"])))
                 normalized["SECONDARYUNIT"] = "APT";
-            }
 
             return normalized;
         }
