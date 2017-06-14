@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -23,24 +22,22 @@ namespace AddressParser
         internal AddressParseResult(Dictionary<string, string> fields)
         {
             if (fields == null)
-            {
                 throw new ArgumentNullException(nameof(fields));
+
+            LoadPropertyFromDictionary(fields);
+        }
+
+        private void LoadPropertyFromDictionary(IDictionary<string, string> source)
+        {
+            var someObjectType = typeof(AddressParseResult);
+
+            foreach (var item in source)
+            {
+                var prop = someObjectType.GetProperty(item.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+                if (prop != null)
+                    prop.SetValue(this, item.Value, null);
             }
 
-            var type = GetType();
-            const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase;
-            foreach (var pair in fields)
-            {
-                var propertyInfo = type.GetProperty(pair.Key, bindingFlags);
-                if (propertyInfo != null)
-                {
-                    var methodInfo = propertyInfo.GetSetMethod(true);
-                    if (methodInfo != null)
-                    {
-                        methodInfo.Invoke(this, new object[] { pair.Value });
-                    }
-                }
-            }
         }
 
         /// <summary>
@@ -49,6 +46,7 @@ namespace AddressParser
         public string City
         {
             get;
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local  reflection uses this
             private set;
         }
 
@@ -58,6 +56,7 @@ namespace AddressParser
         public string Number
         {
             get;
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local  reflection uses this
             private set;
         }
 
@@ -67,6 +66,7 @@ namespace AddressParser
         public string Predirectional
         {
             get;
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local  reflection uses this
             private set;
         }
 
@@ -76,6 +76,7 @@ namespace AddressParser
         public string Postdirectional
         {
             get;
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local  reflection uses this
             private set;
         }
 
@@ -85,6 +86,7 @@ namespace AddressParser
         public string State
         {
             get;
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local  reflection uses this
             private set;
         }
 
@@ -94,6 +96,7 @@ namespace AddressParser
         public string Street
         {
             get;
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local  reflection uses this
             private set;
         }
 
@@ -120,6 +123,8 @@ namespace AddressParser
                 return _streetLine;
             }
 
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local  reflection uses this
+            // ReSharper disable once UnusedMember.Local
             private set => _streetLine = value;
         }
 
@@ -129,6 +134,7 @@ namespace AddressParser
         public string Suffix
         {
             get;
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local  reflection uses this
             private set;
         }
 
@@ -138,6 +144,7 @@ namespace AddressParser
         public string SecondaryUnit
         {
             get;
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local  reflection uses this
             private set;
         }
 
@@ -147,6 +154,7 @@ namespace AddressParser
         public string SecondaryNumber
         {
             get;
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local  reflection uses this
             private set;
         }
 
@@ -156,6 +164,7 @@ namespace AddressParser
         public string Zip
         {
             get;
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local  reflection uses this
             private set;
         }
 
@@ -167,13 +176,7 @@ namespace AddressParser
         /// </returns>
         public override string ToString()
         {
-            return string.Format(
-                CultureInfo.InvariantCulture,
-                "{0}; {1}, {2}  {3}",
-                StreetLine,
-                City,
-                State,
-                Zip);
+            return $"{StreetLine}; {City}, {State}  {Zip}";
         }
     }
 }
